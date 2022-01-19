@@ -126,8 +126,7 @@ jobs:
           $COMPOSER_UP
           echo "::endgroup::"
 
-          echo "::group::install phpunit"
-          ./phpunit install
+          echo "::group::require --dev phpunit/phpunit symfony/test-pack"
           echo "::endgroup::"
 
       - name: Patch return types
