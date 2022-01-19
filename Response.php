@@ -98,6 +98,8 @@ class Response
         'proxy_revalidate' => false,
         'max_age' => true,
         's_maxage' => true,
+        'stale_while_revalidate' => true, // RFC5861
+        'stale_if_error' => true,         // RFC5861
         'immutable' => false,
         'last_modified' => true,
         'etag' => true,
@@ -796,19 +798,35 @@ class Response
         return $this;
     }
 
+
     /**
      * Sets the number of seconds after which the response should no longer be considered fresh by shared caches.
      *
-     * This methods sets the Cache-Control s-maxage directive.
+     * This methods sets the Cache-Control stale-if-error directive.
      *
      * @return $this
      *
      * @final
      */
-    public function setSharedMaxAge(int $value): object
+    public function setStaleIfError(int $value): object
     {
-        $this->setPublic();
-        $this->headers->addCacheControlDirective('s-maxage', $value);
+        $this->headers->addCacheControlDirective('stale-if-error', $value);
+
+        return $this;
+    }
+
+    /**
+     * Sets the number of seconds after which the response should no longer be considered fresh by shared caches.
+     *
+     * This methods sets the Cache-Control stale-while-revalidate directive.
+     *
+     * @return $this
+     *
+     * @final
+     */
+    public function setStaleWhileRevalidate(int $value): object
+    {
+        $this->headers->addCacheControlDirective('stale-while-revalidate', $value);
 
         return $this;
     }
@@ -963,6 +981,13 @@ class Response
 
         if (isset($options['max_age'])) {
             $this->setMaxAge($options['max_age']);
+
+            if (isset($options['stale_while_revalidate'])) {
+                $this->setStaleWhileRevalidate($options['stale_while_revalidate']);
+            }
+            if (isset($options['stale_if_error'])) {
+                $this->setStaleIfError($options['stale_if_error']);
+            }
         }
 
         if (isset($options['s_maxage'])) {
