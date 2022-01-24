@@ -20,8 +20,6 @@ jobs:
       matrix:
         include:
           - php: '7.4'
-          - php: '8.0'
-            mode: high-deps
       fail-fast: false
 
     runs-on: ubuntu-20.04
@@ -31,11 +29,6 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 2
-
-      - name: Configure for PHP >= 8.2
-        if: "matrix.php >= '8.2'"
-        run: |
-          composer config platform.php 8.1.99
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -134,8 +127,6 @@ jobs:
           sed -i 's/"\*\*\/Tests\/"//' composer.json
           git add .
           composer install -q --optimize-autoloader
-          SYMFONY_PATCH_TYPE_DECLARATIONS='force=1&php=7.2' php .github/patch-types.php
-          SYMFONY_PATCH_TYPE_DECLARATIONS='force=1&php=7.2' php .github/patch-types.php # ensure the script is idempotent
           git diff --exit-code
           echo PHPUNIT="$PHPUNIT,legacy" >> $GITHUB_ENV
 
@@ -208,15 +199,3 @@ jobs:
               fi
           fi
 
-          [[ ! $X ]] || (exit 1)
-
-      - name: Run tests with SIGCHLD enabled PHP
-        if: "matrix.php == '7.2' && ! matrix.mode"
-        run: |
-          mkdir build
-          cd build
-          wget -q https://github.com/symfony/binary-utils/releases/download/v0.1/php-7.2.5-pcntl-sigchild.tar.bz2
-          tar -xjf php-7.2.5-pcntl-sigchild.tar.bz2
-          cd ..
-
-          ./build/php/bin/php ./vendor/bin/phpunit --colors=always src/Symfony/Component/Process
