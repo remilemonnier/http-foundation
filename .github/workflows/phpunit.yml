@@ -87,7 +87,15 @@ jobs:
             git rm -fq -- src/Symfony/Bridge/PhpUnit/composer.json
             git diff --staged -- src/Symfony/Bridge/PhpUnit/ | git apply -R --index
           fi
-
+          
+          # For the highest branch, in high-deps mode, the version before it is checked out and tested with the locally patched components
+          if [[ "${{ matrix.mode }}" = high-deps && $SYMFONY_VERSION = $(echo "$SYMFONY_VERSIONS" | tail -n 1 | sed s/.//) ]]; then
+            echo FLIP='^' >> $GITHUB_ENV
+            SYMFONY_VERSION=$(echo "$SYMFONY_VERSIONS" | grep -FB1 /$SYMFONY_VERSION | head -n 1 | sed s/.//)
+            git fetch --depth=2 origin $SYMFONY_VERSION
+            git checkout -m FETCH_HEAD
+            echo COMPONENTS=$(find src/Symfony -mindepth 2 -type f -name phpunit.xml.dist -printf '%h ') >> $GITHUB_ENV
+          fi
 
       - name: Install dependencies
         run: |
@@ -117,6 +125,8 @@ jobs:
             local end=$(date -u +%s)
           }
           export -f _run_tests
+          
+          echo "$COMPONENTS" | xargs -n1 | parallel -j +3 "_run_tests {} '$PHPUNIT {}'"
 
           # for 5.4 LTS, checkout and test previous major with the patched components (only for patched components)
           if [[ $PATCHED_COMPONENTS && $SYMFONY_VERSION = 5.4 ]]; then
