@@ -117,6 +117,7 @@ jobs:
           echo "::endgroup::"
 
           echo "::group::composer require --dev phpunit/phpunit symfony/test-pack"
+          composer require --dev phpunit/phpunit symfony/test-pac
           echo "::endgroup::"
 
       - name: Patch return types
