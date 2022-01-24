@@ -96,6 +96,13 @@ jobs:
             git checkout -m FETCH_HEAD
             echo COMPONENTS=$(find src/Symfony -mindepth 2 -type f -name phpunit.xml.dist -printf '%h ') >> $GITHUB_ENV
           fi
+          
+          # Skip the phpunit-bridge on bugfix-branches when not in *-deps mode
+          if [[ ! "${{ matrix.mode }}" = *-deps && $SYMFONY_VERSION != $SYMFONY_FEATURE_BRANCH ]]; then
+            echo COMPONENTS=$(find src/Symfony -mindepth 2 -type f -name phpunit.xml.dist -not -wholename '*/Bridge/PhpUnit/*' | xargs -I{} dirname {}) >> $GITHUB_ENV
+          else
+            echo COMPONENTS=$(find src/Symfony -mindepth 2 -type f -name phpunit.xml.dist | xargs -I{} dirname {}) >> $GITHUB_ENV
+          fi
 
       - name: Install dependencies
         run: |
